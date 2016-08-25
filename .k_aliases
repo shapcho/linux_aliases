@@ -1,0 +1,164 @@
+
+kgrep(){
+
+	exclude_files=(
+			"eztune_items_*.c"
+	)
+
+	exclude_dirs=(
+			".git"
+	)
+
+	include_files=(
+#			"*.h"
+#			"*.c"
+#			"*.java"
+#			"*.xml"
+	)
+
+	declare grep_config_str
+
+	for((i=2; i<=$#; i++))
+	do
+		grep_config_str=$grep_config_str" ${!i}"
+	done
+
+	for i in "${exclude_files[@]}"
+	do
+		grep_config_str=$grep_config_str" --exclude \"$i\""
+	done
+
+	for i in "${exclude_dirs[@]}"
+	do
+		grep_config_str=$grep_config_str" --exclude-dir \"$i\""
+	done
+
+	for i in "${include_files[@]}"
+	do
+		grep_config_str=$grep_config_str" --include \"$i\""
+		echo \"$1\"
+	done
+
+	grep_config_str="grep -rn $1 .  $grep_config_str"
+
+	eval $grep_config_str
+}
+
+alias ll="ls -la"
+
+
+kl_legacy(){
+        source build/envsetup.sh
+
+	if [ $1 == 'clark' ];then
+		lunch clark_retus-userdebug
+        
+	elif [ $1 == 'lynx' ];then
+		lunch lux_verizon-userdebug
+
+	elif [ $1 == 'kinzie' ];then
+		lunch kinzie_verizon-userdebug
+
+	elif [ $1 == 'lux' ];then
+		lunch lux_verizon-userdebug
+
+	elif [ $1 == '8952' ];then
+		lunch athene_retail-userdebug 
+
+	elif [ $1 == 'vertex' ];then
+               lunch addison_retail-userdebug
+
+	elif [ $1 == '8953' ];then
+		lunch potter_retail-userdebug
+
+	elif [ $1 == '8996' ];then
+		lunch griffin_mmi-userdebug
+
+        else
+	       echo
+               echo type what you want to lunch
+               echo the valid options are
+               echo 1. clark
+               echo 2. lux
+	       read project
+	       if [ "clark" == $project -o "1" == $project ]; then
+                  lunch clark_retus-userdebug
+               elif [ "lux" == $project -o "2" == $project ]; then
+                  lunch lux_verizon-userdebug
+               fi
+	fi
+ 
+
+}
+krs(){
+
+use_hack="false"
+if [ $use_hack == "True" ]; then
+	gsync_check_cmd=`ssh -p 29418 gerrit.mot.com gsyncd start kalloyan --site il427 --delta-sync 0 --partial-sync 0 --version 1.1-3130350776.27715`;
+	info_sync=(${gsync_check_cmd//:/ })
+	num_of_jobs=${info_sync[1]};
+	
+	if [[ $num_of_jobs =~ ^[0-9]+$ ]]; then
+		echo NUMBER OF JOBS WILL BE $num_of_jobs
+		time ionice -c 2 -n 0 nice repo sync -j$num_of_jobs -c -q
+	else
+		echo -e "The gsync command returns\n $gsync_check_cmd"
+		echo will use gsync instead
+		gsync
+	fi
+else
+	gsync
+fi
+}
+
+kmake(){
+time  ionice -c 2 -n 0 nice make -j15 
+}
+
+kall(){
+     if [ -z "$1" ]; then
+	echo Please provide project to lunch
+
+     else 
+		kl $1 test && krs && kl $1 && kmake
+
+     fi
+}
+
+kl()
+{
+PROJECTS=(   
+		"clark:clark_retus-userdebug"
+		"kinzie:kinzie_verizon-userdebug"
+		"lux:lux_verizon-userdebug"
+		"8952:athene_retail-userdebug"
+		"vertex:addison_retail-userdebug"
+		"potter:potter_retail-userdebug"
+		"8996:griffin_mmi-userdebug"
+	)
+ 
+lunch_input=""
+for curr_project in "${PROJECTS[@]}" ; do
+    if [ "$1" == "${curr_project%%:*}" ]; then
+	lunch_input="${curr_project##*:}"
+    fi
+    
+done
+
+if [ "$lunch_input" == "" ]; then
+	echo THERE IS NO PROJECT "$1"
+	return 1
+
+elif [ "$2" == "test" ]; then
+	echo project indetified
+
+elif ! [ -f build/envsetup.sh ]; then 
+	echo THERE IS NO  build/envsetup.sh FILE
+	return 1
+
+else
+        source build/envsetup.sh
+    	lunch $lunch_input
+fi
+
+}
