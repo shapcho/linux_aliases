@@ -1,3 +1,11 @@
+
+# adding kaloyan's aliases
+if [ -f ~/linux_aliases/.k_aliases ]; then
+	source ~/linux_aliases/.k_aliases
+else
+	echo .k_aliases is not set
+fi
+
 # ~/.bashrc: executed by bash(1) for non-login shells.
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples

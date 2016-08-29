@@ -156,5 +156,5 @@ fi
 
 # include version control dir with tools to PATH
 if [ -d "$curr_dir/local_aliases" ] ; then
-    PATH="$curr_dir/local_aliases:$PATH
+    PATH="$curr_dir/local_aliases":$PATH
 fi

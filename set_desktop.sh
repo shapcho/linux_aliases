@@ -23,4 +23,4 @@ link_func  .vimrc
 link_func  .profile
 link_func  .bashrc
 link_func  .screenrc
-
+link_func  .bash_profile
