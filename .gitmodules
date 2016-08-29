@@ -1,0 +1,3 @@
+[submodule "local_aliases"]
+	path = local_aliases
+	url = https://github.com/shapcho/local_aliases.git

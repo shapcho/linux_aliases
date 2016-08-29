@@ -1,3 +1,4 @@
+source local_aliases/.local_aliases
 
 kgrep(){
 
