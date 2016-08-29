@@ -152,3 +152,9 @@ if [ -f $curr_dir/local_aliases/.local_aliases ]; then
 else
 	echo file: $curr_dir/local_aliases/.local_aliases was not found
 fi
+
+
+# include version control dir with tools to PATH
+if [ -d "$curr_dir/local_aliases" ] ; then
+    PATH="$curr_dir/local_aliases:$PATH
+fi
