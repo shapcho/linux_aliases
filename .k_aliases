@@ -1,5 +1,17 @@
 source local_aliases/.local_aliases
 
+kdo_changes(){
+
+	# set some function for argument
+	# apply that function on all modified files
+
+	files=$(git diff --name-only)
+
+	for i in $(git diff --name-only); do
+	  $1 $i
+	done
+}
+
 kgrep(){
 
 	exclude_files=(
