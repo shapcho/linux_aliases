@@ -1,4 +1,3 @@
-source local_aliases/.local_aliases
 
 kdo_changes(){
 
@@ -57,121 +56,99 @@ kgrep(){
 	eval $grep_config_str
 }
 
-alias ll="ls -la"
-
-
-kl_legacy(){
-        source build/envsetup.sh
-
-	if [ $1 == 'clark' ];then
-		lunch clark_retus-userdebug
-        
-	elif [ $1 == 'lynx' ];then
-		lunch lux_verizon-userdebug
-
-	elif [ $1 == 'kinzie' ];then
-		lunch kinzie_verizon-userdebug
-
-	elif [ $1 == 'lux' ];then
-		lunch lux_verizon-userdebug
-
-	elif [ $1 == '8952' ];then
-		lunch athene_retail-userdebug 
-
-	elif [ $1 == 'vertex' ];then
-               lunch addison_retail-userdebug
-
-	elif [ $1 == '8953' ];then
-		lunch potter_retail-userdebug
-
-	elif [ $1 == '8996' ];then
-		lunch griffin_mmi-userdebug
-
-        else
-	       echo
-               echo type what you want to lunch
-               echo the valid options are
-               echo 1. clark
-               echo 2. lux
-	       read project
-	       if [ "clark" == $project -o "1" == $project ]; then
-                  lunch clark_retus-userdebug
-               elif [ "lux" == $project -o "2" == $project ]; then
-                  lunch lux_verizon-userdebug
-               fi
-	fi
- 
-
-}
 krs(){
 
-use_hack="false"
-if [ $use_hack == "True" ]; then
-	gsync_check_cmd=`ssh -p 29418 gerrit.mot.com gsyncd start kalloyan --site il427 --delta-sync 0 --partial-sync 0 --version 1.1-3130350776.27715`;
-	info_sync=(${gsync_check_cmd//:/ })
-	num_of_jobs=${info_sync[1]};
-	
-	if [[ $num_of_jobs =~ ^[0-9]+$ ]]; then
-		echo NUMBER OF JOBS WILL BE $num_of_jobs
-		time ionice -c 2 -n 0 nice repo sync -j$num_of_jobs -c -q
+	time ionice -c 2 -n 0 nice repo sync -j15 -c -q
+}
+
+kl()
+{
+	PROJECTS=(
+			"project_key:project_lunch_cmd"
+		)
+
+	lunch_input=""
+	for curr_project in "${PROJECTS[@]}" ; do
+	    if [ "$1" == "${curr_project%%:*}" ]; then
+		lunch_input="${curr_project##*:}"
+	    fi
+
+	done
+
+	if [ "$lunch_input" == "" ]; then
+		echo THERE IS NO PROJECT "$1"
+		return 1
+
+	elif [ "$2" == "test" ]; then
+		echo project indetified
+
+	elif ! [ -f build/envsetup.sh ]; then
+		echo THERE IS NO  build/envsetup.sh FILE
+		return 1
+
 	else
-		echo -e "The gsync command returns\n $gsync_check_cmd"
-		echo will use gsync instead
-		gsync
+	        source build/envsetup.sh
+		lunch $lunch_input
 	fi
-else
-	gsync
-fi
+
 }
 
 kmake(){
-time  ionice -c 2 -n 0 nice make -j15 
+	time  ionice -c 2 -n 0 nice make -j15
 }
 
 kall(){
      if [ -z "$1" ]; then
 	echo Please provide project to lunch
 
-     else 
+     else
 		kl $1 test && krs && kl $1 && kmake
 
      fi
 }
 
-kl()
-{
-PROJECTS=(   
-		"clark:clark_retus-userdebug"
-		"kinzie:kinzie_verizon-userdebug"
-		"lux:lux_verizon-userdebug"
-		"8952:athene_retail-userdebug"
-		"vertex:addison_retail-userdebug"
-		"potter:potter_retail-userdebug"
-		"8996:griffin_mmi-userdebug"
-	)
- 
-lunch_input=""
-for curr_project in "${PROJECTS[@]}" ; do
-    if [ "$1" == "${curr_project%%:*}" ]; then
-	lunch_input="${curr_project##*:}"
-    fi
-    
-done
+kcam() {
 
-if [ "$lunch_input" == "" ]; then
-	echo THERE IS NO PROJECT "$1"
-	return 1
+   for i in $*
+     do
 
-elif [ "$2" == "test" ]; then
-	echo project indetified
+	if [ "$i" == "b" ]; then
+	    adb shell input keyevent 4
 
-elif ! [ -f build/envsetup.sh ]; then 
-	echo THERE IS NO  build/envsetup.sh FILE
-	return 1
+	elif [ "$i" == "c" ]; then
+	    adb shell input keyevent 27
 
-else
-        source build/envsetup.sh
-    	lunch $lunch_input
-fi
+	elif [ "$i" == "p" ]; then
+	    adb shell input keyevent 26
 
+	elif [ "$i" == "s" ]; then
+	    adb shell input tap 146 680
+
+	elif [ "$i" == "sw" ]; then
+		adb shell input swipe 254 788 254 100
+	fi
+
+        sleep 1
+
+    done
 }
+
+kmm(){
+	if [ ! -d "$ANDROID_BUILD_TOP" ]
+	  then
+	       >&2 echo "     can't find Android environments"
+	       >&2 echo "     please flash after sourcing the toolchanin and lunching the desired chipset"
+	       return 1
+	fi
+
+	mm 2>&1 | grep "Install: out" | tee "$ANDROID_BUILD_TOP/so_files.txt"
+}
+
+#Source local aliase to modify functions for current project
+curr_dir=$( dirname "${BASH_SOURCE[0]}")
+
+if [ -f $curr_dir/local_aliases/.local_aliases ]; then
+	source $curr_dir/local_aliases/.local_aliases
+else
+	echo file: $curr_dir/local_aliases/.local_aliases was not found
+fi
