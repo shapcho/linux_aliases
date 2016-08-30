@@ -144,9 +144,14 @@ kmm(){
 	mm 2>&1 | grep "Install: out" | tee "$ANDROID_BUILD_TOP/so_files.txt"
 }
 
-#Source local aliase to modify functions for current project
 curr_dir=$( dirname "${BASH_SOURCE[0]}")
 
+# include version control dir with tools to PATH
+if [ -d "$curr_dir" ] ; then
+    PATH="$curr_dir":$PATH
+fi
+
+#Source local aliase to modify functions for current project
 if [ -f $curr_dir/local_aliases/.local_aliases ]; then
 	source $curr_dir/local_aliases/.local_aliases
 else
